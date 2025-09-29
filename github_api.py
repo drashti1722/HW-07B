@@ -1,83 +1,111 @@
 # github_api.py
 from __future__ import annotations
-
-from typing import List, Tuple, Iterable, Optional
-import sys
-
+from typing import List, Tuple, Optional
+import os
+import time
 import requests
-
 
 class GitHubAPIError(Exception):
     """Custom exception for GitHub API errors."""
     pass
 
+def _new_session() -> requests.Session:
+    """Create a requests session with sensible headers and optional token."""
+    s = requests.Session()
+    s.headers.update({
+        "User-Agent": "ssw-567-hw-github-client",
+        "Accept": "application/vnd.github+json",
+    })
+    token = os.getenv("GITHUB_TOKEN")  # optional, increases rate limit
+    if token:
+        s.headers["Authorization"] = f"Bearer {token}"
+    return s
 
-def _check_response(resp: requests.Response) -> None:
-    """Raise GitHubAPIError if the HTTP response is not 200 OK."""
-    if resp.status_code != 200:
+def _raise_if_error(resp: requests.Response, *, allow_409_empty: bool = False) -> None:
+    """Raise GitHubAPIError with a helpful message unless response is OK.
+       If allow_409_empty=True, treat 409 'Git Repository is empty' as OK."""
+    if resp.status_code == 200:
+        return
+    if allow_409_empty and resp.status_code == 409:
+        # This happens when a repository has no commits yet.
+        return
+    # Build a helpful error text
+    reset = resp.headers.get("X-RateLimit-Reset")
+    remaining = resp.headers.get("X-RateLimit-Remaining")
+    extra = ""
+    if resp.status_code == 403 and remaining == "0" and reset:
         try:
-            detail = resp.json()
+            reset_ts = int(reset)
+            mins = max(0, int((reset_ts - time.time()) // 60))
+            extra = f" (rate limit hit; try again in ~{mins} min)"
         except Exception:
-            detail = resp.text
-        # Common helpful hint for rate limits
-        if resp.status_code == 403 and "rate limit" in str(detail).lower():
-            raise GitHubAPIError(
-                "GitHub API error 403 (rate limit). "
-                "Wait a few minutes or add authentication."
-            )
-        raise GitHubAPIError(f"GitHub API error: {resp.status_code} -> {detail}")
-
+            extra = " (rate limit hit)"
+    try:
+        body = resp.json()
+    except Exception:
+        body = resp.text
+    raise GitHubAPIError(
+        f"GitHub API error {resp.status_code}{extra}: {body}"
+    )
 
 def list_user_repos_with_commit_counts(
     user: str,
     session: Optional[requests.Session] = None
 ) -> List[Tuple[str, int]]:
     """
-    Return a list of (repo_name, commit_count) for the given GitHub user.
-
-    - Uses dependency injection (optional session) so tests can mock easily.
-    - Raises GitHubAPIError on any non-200 HTTP response.
+    Returns a list of (repo_name, commit_count) for the given GitHub user.
+    - Treats 409 on commits as zero (empty repo).
+    - Raises GitHubAPIError on any other non-200.
     """
-    sess = session or requests.Session()
-    results: List[Tuple[str, int]] = []
+    close_session = False
+    if session is None:
+        session = _new_session()
+        close_session = True
 
-    # 1) list repos
-    repos_url = f"https://api.github.com/users/{user}/repos"
-    r = sess.get(repos_url)
-    _check_response(r)
-    repos = r.json()
-    if not isinstance(repos, list):
-        raise GitHubAPIError("Unexpected response shape for repos list")
+    try:
+        # 1) list repos
+        repos_url = f"https://api.github.com/users/{user}/repos?per_page=100"
+        r = session.get(repos_url, timeout=20)
+        _raise_if_error(r)
+        repos = r.json()
 
-    for repo in repos:
-        name = repo.get("name")
-        if not name:
-            continue
+        results: List[Tuple[str, int]] = []
+        for repo in repos:
+            name = repo.get("name")
+            if not name:
+                continue
+            commits_url = f"https://api.github.com/repos/{user}/{name}/commits?per_page=100"
+            c = session.get(commits_url, timeout=20)
+            # Allow 409 = “Git Repository is empty.”
+            _raise_if_error(c, allow_409_empty=True)
 
-        # 2) fetch commits for each repo
-        commits_url = f"https://api.github.com/repos/{user}/{name}/commits"
-        c_resp = sess.get(commits_url)
-        _check_response(c_resp)
-        commits = c_resp.json()
-        count = len(commits) if isinstance(commits, list) else 0
-        results.append((name, count))
+            if c.status_code == 409:
+                count = 0
+            else:
+                commits = c.json()
+                # If you want to be exact across many commits, you’d paginate here.
+                count = len(commits) if isinstance(commits, list) else 0
 
-    # Stable ordering helps test assertions
-    results.sort(key=lambda t: t[0].lower())
-    return results
+            results.append((name, count))
 
+        # Stable order helps testing
+        results.sort(key=lambda t: t[0].lower())
+        return results
+    finally:
+        if close_session:
+            session.close()
 
 if __name__ == "__main__":
-    # Simple CLI: python github_api.py <github_user>
+    import sys
     if len(sys.argv) != 2:
         print("Usage: python github_api.py <github_user>")
         sys.exit(2)
-
     user = sys.argv[1]
     try:
         rows = list_user_repos_with_commit_counts(user)
-        for repo, cnt in rows:
-            print(f"Repo: {repo}  Number of commits: {cnt}")
+        for name, cnt in rows:
+            print(f"Repo: {name}  Number of commits: {cnt}")
     except GitHubAPIError as e:
-        print(f"Error: {e}")
+        # Friendly error so you see why it failed
+        print(e)
         sys.exit(1)
