@@ -1,5 +1,6 @@
 # CI check
 # Assignment-SSW-567
+ HW03b_Mocking
 [![CircleCI](https://dl.circleci.com/status-badge/img/gh/drashti1722/Assignment-SSW-567/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/drashti1722/Assignment-SSW-567/tree/main)
 
 This project queries the GitHub API to retrieve a list of repositories for a given user and the number of commits in each repository.  
@@ -24,15 +25,10 @@ GitHub Repo Commit Counter
 
 Repositories and commit counts for 'drashti1722':
 
-- Fashion-Era: 2 commits
-- First-Spline-3D: 3 commits
-- HRMS: 2 commits
-- HW03 Number of commits: 14 commits
-- Kosol-Clone-Project-: 33 commits
-- Magni-Era: 3 commits
-- MedVision: 2 commits
-- memo-invoice: 7 commits
-- NFT-Dashboard: 10 commits
-- Shopping-Cart: 4 commits
-- SSW-567: 5 commits
+Repo: Assignment-SSW-567 Number of commits: 5
+Repo: HelloWorld Number of commits: 1
+Repo: shop-website Number of commits: 1
+Repo: shoping Number of commits: 1
+=======
+
 
