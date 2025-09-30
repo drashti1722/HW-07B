@@ -18,7 +18,7 @@ jobs:
       - run:
           name: Check Python syntax
           command: |
-            python -m py_compile src/github_api.py
+            python -m py_compile github_api.py
             python -m py_compile demo.py
             python -m py_compile test.py
       - run:
