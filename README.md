@@ -1,7 +1,7 @@
 # CI check
 # Assignment-SSW-567
  HW04c_Mocking
-[![CircleCI](https://dl.circleci.com/status-badge/img/gh/drashti1722/Assignment-SSW-567/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/drashti1722/Assignment-SSW-567/tree/main)
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/drashti1722/Assignment-SSW-567/tree/HW04c_Mocking.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/drashti1722/Assignment-SSW-567/tree/HW04c_Mocking)
 
 This project queries the GitHub API to retrieve a list of repositories for a given user and the number of commits in each repository.  
 
