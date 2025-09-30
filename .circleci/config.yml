@@ -23,13 +23,7 @@ jobs:
       - run:
           name: Run tests with coverage
           command: |
-            PYTHONPATH=$PYTHONPATH:./src pytest test.py -v --cov=src --cov-report=term-missing
-      - run:
-          name: Run demo
-          command: echo "n" | python demo.py
-      - run:
-          name: Upload coverage to Codecov
-          command: codecov
+            PYTHONPATH=$PYTHONPATH:./src pytest test_github_api.py -v --cov=src --cov-report=term-missing
 
 workflows:
   main:
