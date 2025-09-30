@@ -1,16 +1,22 @@
 # github_api.py
 from __future__ import annotations
+
 from typing import List, Tuple, Optional
 import os
 import time
 import requests
 
+
 class GitHubAPIError(Exception):
     """Custom exception for GitHub API errors."""
     pass
 
+
 def _new_session() -> requests.Session:
-    """Create a requests session with sensible headers and optional token."""
+    """
+    Create a requests session with sensible headers and optional token.
+    Kept separate so tests can patch it.
+    """
     s = requests.Session()
     s.headers.update({
         "User-Agent": "ssw-567-hw-github-client",
@@ -21,15 +27,18 @@ def _new_session() -> requests.Session:
         s.headers["Authorization"] = f"Bearer {token}"
     return s
 
+
 def _raise_if_error(resp: requests.Response, *, allow_409_empty: bool = False) -> None:
-    """Raise GitHubAPIError with a helpful message unless response is OK.
-       If allow_409_empty=True, treat 409 'Git Repository is empty' as OK."""
+    """
+    Raise GitHubAPIError unless response is OK.
+    If allow_409_empty=True, treat 409 'Git Repository is empty' as OK (zero commits).
+    """
     if resp.status_code == 200:
         return
     if allow_409_empty and resp.status_code == 409:
-        # This happens when a repository has no commits yet.
         return
-    # Build a helpful error text
+
+    # nice message for rate limit cases
     reset = resp.headers.get("X-RateLimit-Reset")
     remaining = resp.headers.get("X-RateLimit-Remaining")
     extra = ""
@@ -44,18 +53,19 @@ def _raise_if_error(resp: requests.Response, *, allow_409_empty: bool = False) -
         body = resp.json()
     except Exception:
         body = resp.text
-    raise GitHubAPIError(
-        f"GitHub API error {resp.status_code}{extra}: {body}"
-    )
+
+    raise GitHubAPIError(f"GitHub API error {resp.status_code}{extra}: {body}")
+
 
 def list_user_repos_with_commit_counts(
     user: str,
     session: Optional[requests.Session] = None
 ) -> List[Tuple[str, int]]:
     """
-    Returns a list of (repo_name, commit_count) for the given GitHub user.
-    - Treats 409 on commits as zero (empty repo).
-    - Raises GitHubAPIError on any other non-200.
+    Return a list of (repo_name, commit_count) for the given GitHub user.
+    - On commits endpoint, 409 ('Git Repository is empty') is treated as zero.
+    - Any other non-200 raises GitHubAPIError.
+    Results are sorted by repo name (case-insensitive).
     """
     close_session = False
     if session is None:
@@ -63,49 +73,48 @@ def list_user_repos_with_commit_counts(
         close_session = True
 
     try:
-        # 1) list repos
+        # list repos
         repos_url = f"https://api.github.com/users/{user}/repos?per_page=100"
         r = session.get(repos_url, timeout=20)
         _raise_if_error(r)
-        repos = r.json()
+        repos = r.json() or []
 
         results: List[Tuple[str, int]] = []
         for repo in repos:
             name = repo.get("name")
             if not name:
                 continue
+
             commits_url = f"https://api.github.com/repos/{user}/{name}/commits?per_page=100"
             c = session.get(commits_url, timeout=20)
-            # Allow 409 = “Git Repository is empty.”
             _raise_if_error(c, allow_409_empty=True)
 
             if c.status_code == 409:
                 count = 0
             else:
                 commits = c.json()
-                # If you want to be exact across many commits, you’d paginate here.
                 count = len(commits) if isinstance(commits, list) else 0
 
             results.append((name, count))
 
-        # Stable order helps testing
         results.sort(key=lambda t: t[0].lower())
         return results
     finally:
-        if close_session:
+        if close_session and hasattr(session, "close"):
             session.close()
+
 
 if __name__ == "__main__":
     import sys
     if len(sys.argv) != 2:
         print("Usage: python github_api.py <github_user>")
         sys.exit(2)
+
     user = sys.argv[1]
     try:
         rows = list_user_repos_with_commit_counts(user)
         for name, cnt in rows:
             print(f"Repo: {name}  Number of commits: {cnt}")
     except GitHubAPIError as e:
-        # Friendly error so you see why it failed
         print(e)
         sys.exit(1)
