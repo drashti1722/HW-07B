@@ -19,8 +19,7 @@ jobs:
           name: Check Python syntax
           command: |
             python -m py_compile github_api.py
-            python -m py_compile demo.py
-            python -m py_compile test.py
+            python -m py_compile test_github_api.py
       - run:
           name: Run tests with coverage
           command: |
