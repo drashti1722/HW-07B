@@ -1,0 +1,13 @@
+************* Module triangle
+triangle.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+triangle.py:4:0: W0105: String statement has no effect (pointless-string-statement)
+triangle.py:20:7: E0606: Possibly using variable 'a' before assignment (possibly-used-before-assignment)
+triangle.py:20:17: E0606: Possibly using variable 'b' before assignment (possibly-used-before-assignment)
+triangle.py:20:27: E0606: Possibly using variable 'c' before assignment (possibly-used-before-assignment)
+triangle.py:7:22: W0613: Unused argument 'side_a' (unused-argument)
+triangle.py:7:35: W0613: Unused argument 'side_b' (unused-argument)
+triangle.py:7:48: W0613: Unused argument 'side_c' (unused-argument)
+
+------------------------------------------------------------------
+Your code has been rated at 0.48/10 (previous run: 0.48/10, +0.00)
+

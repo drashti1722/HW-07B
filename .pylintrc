@@ -1,0 +1,6 @@
+[FORMAT]
+max-line-length=100
+
+[BASIC]
+# Allow common math short names so Pylint doesn't warn
+good-names=a,b,c,x,y,z
