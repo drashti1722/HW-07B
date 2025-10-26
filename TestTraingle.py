@@ -4,8 +4,7 @@ Unit tests for Triangle.classifyTriangle using Python's unittest.
 
 Run (use the file's exact name):
   python3 -m unittest TestTraingle -v
-or
-  python3 -m unittest discover -v -p "Test*.py"
+  
 """
 
 import unittest
