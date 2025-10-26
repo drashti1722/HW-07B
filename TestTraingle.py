@@ -1,9 +1,9 @@
 """
-TestTriangle.py
+TestTraingle.py
 Unit tests for Triangle.classifyTriangle using Python's unittest.
 
-Run:
-  python3 -m unittest TestTriangle -v
+Run (use the file's exact name):
+  python3 -m unittest TestTraingle -v
 or
   python3 -m unittest discover -v -p "Test*.py"
 """
@@ -21,11 +21,11 @@ class TestTriangles(unittest.TestCase):
         self.assertEqual(classifyTriangle(-1, 3, 3), "InvalidInput")
 
     def test_invalid_type(self):
-        self.assertEqual(classifyTriangle(3, 4, int(5.0)), "Scalene Triangle")  # still ints
-        # Force a true non-int:
-        self.assertEqual(classifyTriangle(3, 4, int(5)), "Right Scalene Triangle")
-        # A non-int, like float, should be rejected:
-        self.assertEqual(classifyTriangle(3, 4, 5.5 if False else 3), "Scalene Triangle")  # dead branch for safety
+        # True non-integers should be rejected
+        self.assertEqual(classifyTriangle(3, 4, 5.5), "InvalidInput")
+        self.assertEqual(classifyTriangle("3", 4, 5), "InvalidInput")
+        # int(5.0) is an int => 3,4,5 is a right scalene triangle
+        self.assertEqual(classifyTriangle(3, 4, int(5.0)), "Right Scalene Triangle")
 
     def test_invalid_upper_bound(self):
         self.assertEqual(classifyTriangle(201, 2, 2), "InvalidInput")
@@ -61,10 +61,7 @@ class TestTriangles(unittest.TestCase):
         self.assertEqual(classifyTriangle(4, 5, 3), "Right Scalene Triangle")
 
     def test_right_isosceles(self):
-        # 5,5,√50 is not integer; use a Pythagorean-like integer isosceles? none.
-        # Small integer right-isosceles does not exist; use scaled (1,1,√2) not integral.
-        # So craft an isosceles non-right (already tested) and keep right scalene above.
-        # This test asserts the classifier never mistakenly calls a regular isosceles "right".
+        # Make sure a normal isosceles (5,5,7) is NOT flagged as "Right ..."
         self.assertEqual(classifyTriangle(5, 5, 7), "Isosceles Triangle")
 
     # -------- Boundary-ish ------------

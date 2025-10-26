@@ -1,34 +1,17 @@
-# CI check
-# Assignment-SSW-567
- HW04c_Mocking
-[![CircleCI](https://dl.circleci.com/status-badge/img/gh/drashti1722/Assignment-SSW-567/tree/HW04c_Mocking.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/drashti1722/Assignment-SSW-567/tree/HW04c_Mocking)
+# SSW-567
+# HW 07b: Testing a Legacy Systems
+# Author
+Drashti Rudani
 
-This project queries the GitHub API to retrieve a list of repositories for a given user and the number of commits in each repository.  
+## Description
+This assignment develops and tests triangle classification program in Python.
 
-It includes:
-- A core function (`get_user_repos_and_commits`) implemented in **`src/github_api.py`**  
-- A simple demo program (**`demo.py`**) for interactive use  
-- Unit tests in **`tests/test_github_api.py`**
+## Files
+- `Triangle.py`: Implements `classifyTriangle(a,b,c)`
+- `TestTriangle.py`: Contains 12 unit tests using `unittest`
+- `test-run-initial.txt`: Test results on buggy version
+- `test-run-final.txt`: Test results on fixed version
 
----
-
-## Requirements
-- Python 3.8+
-- `requests`
-- `pytest`
-
-Install dependencies:
+## How to Run
 ```bash
-pip install -r requirements.txt
-
-GitHub Repo Commit Counter
-
-Repositories and commit counts for 'drashti1722':
-
-Repo: Assignment-SSW-567 Number of commits: 5
-Repo: HelloWorld Number of commits: 1
-Repo: shop-website Number of commits: 1
-Repo: shoping Number of commits: 1
-=======
-
-
+python3 -m unittest -v TestTriangle
