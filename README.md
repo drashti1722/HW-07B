@@ -14,5 +14,5 @@ This assignment develops and tests triangle classification program in Python.
 
 ## How to Run
 ```bash
-python3 -m unittest -v TestTriangle
+python -m unittest TestTriangle
 # HW-07B
